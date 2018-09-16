@@ -355,7 +355,6 @@ namespace Kaboom
                     }
 
                     BucketMovement();
-
                     CatchAnimation(BucketNumber, BucketAnimate);
 
                     //Waits for the user to reset and move on to the next round
@@ -405,7 +404,6 @@ namespace Kaboom
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullCounterClockwise);
             spriteBatch.Draw(Background, BackgroundRec, BackgroundSrcRec, Color.White);
             spriteBatch.Draw(Bomber, BomberRec, BomberSrcRec, Color.White);
-
             DrawBomb();
 
             //Draw explosion rectangles waiting to be used
@@ -424,7 +422,7 @@ namespace Kaboom
         //Allows bomber to move in a random order
         private void BomberAI()
         {
-            MovementTimer = MovementTimer + 1;
+            MovementTimer += 1;
 
             //Checks if the bomber is at the edges
             if (BomberRec.X <= (50))
@@ -438,7 +436,7 @@ namespace Kaboom
             //Picks a new direction for the bomber to move in
             else
             {
-                if (MovementTimer % 7 == 0)
+                if (MovementTimer % 12 == 0)
                 {
                     if (BomberRec.X <= (ScreenW / 2))
                     {
@@ -541,7 +539,7 @@ namespace Kaboom
         //Spawns in bombs for player to catch
         private void BombSpawn()
         {
-            BombRate = BombRate + 1;
+            BombRate += 1;
 
             //Spawns bomb below bomber on a timer
             if (BombRate % BombSpeed == 0)
@@ -682,7 +680,7 @@ namespace Kaboom
         //Animates bombs which appear on screen
         private void BombAnimation()
         {
-            BombSmoothness = BombSmoothness + 1;
+            BombSmoothness += 1;
 
             if (BombSmoothness % 4 == 0)
             {
@@ -711,7 +709,7 @@ namespace Kaboom
         //Desc: Replaces the source rectangle with a timer until the cycle is finished
         private void CatchAnimation(int BucketNumber, bool Animate)
         {
-            if (Animate == true)
+            if (Animate)
             {
                 BucketSmoothness = BucketSmoothness + 1;
 
@@ -747,7 +745,6 @@ namespace Kaboom
             }
 
             ExploNumber = 0;
-
             HitFloor = false;
 
             //Check which level the player is on
@@ -797,7 +794,7 @@ namespace Kaboom
         //Desc: Adds value to the players score
         private void ScoreKeeper(int Level)
         {
-            ScoreOnes = ScoreOnes + Level;
+            ScoreOnes += Level;
 
             //Insures values can only a single digit number
             if (ScoreOnes >= 10)
@@ -983,7 +980,7 @@ namespace Kaboom
         //Animates explosions if a bomb is dropped on the floor
         private void ExplosionAnimate()
         {
-            ExploSmoothness = ExploSmoothness + 1;
+            ExploSmoothness += 1;
 
             if (ExploSmoothness % 4 == 0)
             {
