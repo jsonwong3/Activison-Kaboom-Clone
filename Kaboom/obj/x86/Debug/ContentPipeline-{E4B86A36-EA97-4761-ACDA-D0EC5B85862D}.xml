@@ -1,0 +1,119 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<XnaContent xmlns:Pipeline="Microsoft.Xna.Framework.Content.Pipeline">
+  <Asset Type="Pipeline:BuildItemCollection">
+    <Item>
+      <Source>Images\Background.png</Source>
+      <Name>Images\Background</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Options>None</Options>
+      <Output>c:\users\user\documents\visual studio 2012\Projects\Kaboom\Kaboom\Kaboom\bin\x86\Debug\Content\Images\Background.xnb</Output>
+      <Time>2016-05-02T11:02:18-04:00</Time>
+    </Item>
+    <Item>
+      <Source>Images\Bomb.png</Source>
+      <Name>Images\Bomb</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Options>None</Options>
+      <Output>c:\users\user\documents\visual studio 2012\Projects\Kaboom\Kaboom\Kaboom\bin\x86\Debug\Content\Images\Bomb.xnb</Output>
+      <Time>2016-05-09T11:36:26-04:00</Time>
+    </Item>
+    <Item>
+      <Source>Images\Bomber.png</Source>
+      <Name>Images\Bomber</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Options>None</Options>
+      <Output>c:\users\user\documents\visual studio 2012\Projects\Kaboom\Kaboom\Kaboom\bin\x86\Debug\Content\Images\Bomber.xnb</Output>
+      <Time>2016-05-02T10:28:46-04:00</Time>
+    </Item>
+    <Item>
+      <Source>Images\Bucket.png</Source>
+      <Name>Images\Bucket</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Options>None</Options>
+      <Output>c:\users\user\documents\visual studio 2012\Projects\Kaboom\Kaboom\Kaboom\bin\x86\Debug\Content\Images\Bucket.xnb</Output>
+      <Time>2016-05-11T22:39:34-04:00</Time>
+    </Item>
+    <Item>
+      <Source>Images\Explosion.png</Source>
+      <Name>Images\Explosion</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Options>None</Options>
+      <Output>c:\users\user\documents\visual studio 2012\Projects\Kaboom\Kaboom\Kaboom\bin\x86\Debug\Content\Images\Explosion.xnb</Output>
+      <Time>2016-05-11T17:01:36-04:00</Time>
+    </Item>
+    <Item>
+      <Source>Images\GameOver.png</Source>
+      <Name>Images\GameOver</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Options>None</Options>
+      <Output>c:\users\user\documents\visual studio 2012\Projects\Kaboom\Kaboom\Kaboom\bin\x86\Debug\Content\Images\GameOver.xnb</Output>
+      <Time>2016-05-12T00:45:34-04:00</Time>
+    </Item>
+    <Item>
+      <Source>Images\Number.png</Source>
+      <Name>Images\Number</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Options>None</Options>
+      <Output>c:\users\user\documents\visual studio 2012\Projects\Kaboom\Kaboom\Kaboom\bin\x86\Debug\Content\Images\Number.xnb</Output>
+      <Time>2016-05-11T01:12:24-04:00</Time>
+    </Item>
+    <Item>
+      <Source>Sounds\18530.mp3</Source>
+      <Name>Sounds\18530</Name>
+      <Importer>Mp3Importer</Importer>
+      <Processor>SoundEffectProcessor</Processor>
+      <Options>None</Options>
+      <Output>c:\users\user\documents\visual studio 2012\Projects\Kaboom\Kaboom\Kaboom\bin\x86\Debug\Content\Sounds\18530.xnb</Output>
+      <Time>2018-09-16T02:15:18.9707396-04:00</Time>
+    </Item>
+    <BuildSuccessful>true</BuildSuccessful>
+    <Settings>
+      <ContentProjectGUID>{E4B86A36-EA97-4761-ACDA-D0EC5B85862D}</ContentProjectGUID>
+      <TargetPlatform>Windows</TargetPlatform>
+      <TargetProfile>Reach</TargetProfile>
+      <BuildConfiguration>Debug</BuildConfiguration>
+      <CompressContent>false</CompressContent>
+      <RootDirectory>C:\Users\User\Documents\Visual Studio 2012\Projects\Kaboom\Kaboom\KaboomContent\</RootDirectory>
+      <LoggerRootDirectory>c:\users\user\documents\visual studio 2012\Projects\Kaboom\Kaboom\Kaboom\</LoggerRootDirectory>
+      <IntermediateDirectory>c:\users\user\documents\visual studio 2012\Projects\Kaboom\Kaboom\Kaboom\obj\x86\Debug\</IntermediateDirectory>
+      <OutputDirectory>c:\users\user\documents\visual studio 2012\Projects\Kaboom\Kaboom\Kaboom\bin\x86\Debug\Content\</OutputDirectory>
+    </Settings>
+    <Assemblies>
+      <Assembly>
+        <Key>C:\Program Files (x86)\Microsoft XNA\XNA Game Studio\v4.0\References\Windows\x86\Microsoft.Xna.Framework.Content.Pipeline.XImporter.dll</Key>
+        <Value>2011-09-01T16:22:30-04:00</Value>
+      </Assembly>
+      <Assembly>
+        <Key>C:\Program Files (x86)\Microsoft XNA\XNA Game Studio\v4.0\References\Windows\x86\Microsoft.Xna.Framework.Content.Pipeline.VideoImporters.dll</Key>
+        <Value>2011-09-01T16:22:30-04:00</Value>
+      </Assembly>
+      <Assembly>
+        <Key>C:\Program Files (x86)\Microsoft XNA\XNA Game Studio\v4.0\References\Windows\x86\Microsoft.Xna.Framework.Content.Pipeline.TextureImporter.dll</Key>
+        <Value>2011-09-01T16:22:30-04:00</Value>
+      </Assembly>
+      <Assembly>
+        <Key>C:\Program Files (x86)\Microsoft XNA\XNA Game Studio\v4.0\References\Windows\x86\Microsoft.Xna.Framework.Content.Pipeline.FBXImporter.dll</Key>
+        <Value>2011-09-01T16:22:30-04:00</Value>
+      </Assembly>
+      <Assembly>
+        <Key>C:\Program Files (x86)\Microsoft XNA\XNA Game Studio\v4.0\References\Windows\x86\Microsoft.Xna.Framework.Content.Pipeline.EffectImporter.dll</Key>
+        <Value>2011-09-01T16:22:30-04:00</Value>
+      </Assembly>
+      <Assembly>
+        <Key>C:\Program Files (x86)\Microsoft XNA\XNA Game Studio\v4.0\References\Windows\x86\Microsoft.Xna.Framework.Content.Pipeline.AudioImporters.dll</Key>
+        <Value>2011-09-01T16:22:30-04:00</Value>
+      </Assembly>
+      <Assembly>
+        <Key>C:\Windows\Microsoft.Net\assembly\GAC_32\Microsoft.Xna.Framework.Content.Pipeline\v4.0_4.0.0.0__842cf8be1de50553\Microsoft.Xna.Framework.Content.Pipeline.dll</Key>
+        <Value>2016-04-21T00:21:22.2023749-04:00</Value>
+      </Assembly>
+    </Assemblies>
+  </Asset>
+</XnaContent>
