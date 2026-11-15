@@ -1,1 +1,1 @@
-This is a faithful recreation of the classic Atari game "Kaboom!" written in C#. It requires Microsoft XNA Framework to run. 
+This is a faithful recreation of the classic Atari game "Kaboom!" written in C# using Microsoft XNA framework
