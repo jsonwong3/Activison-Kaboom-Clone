@@ -53,8 +53,7 @@ namespace Kaboom
         int NumberW;
         int NumberH;
         int NumberFrameWide = 10;
-        Rectangle[] NumberRec = new Rectangle[3];
-        Rectangle[] NumberSrcRec = new Rectangle[3];
+        Rectangle[] NumberRec = new Rectangle[ScoreDigits];
         int NumberDrawW;
         int NumberDrawH;
 
@@ -80,8 +79,8 @@ namespace Kaboom
         int BombW;
         int BombH;
         int BombFramesWide = 4;
-        Rectangle[] BombRec = new Rectangle[400];
-        Rectangle[] BombSrcRec = new Rectangle[400];
+        Rectangle[] BombRec = new Rectangle[MaxBombsPerRound];
+        Rectangle[] BombSrcRec = new Rectangle[MaxBombsPerRound];
         int BombDrawW;
         int BombDrawH;
 
@@ -111,7 +110,7 @@ namespace Kaboom
 
         //Bombs
         int BombScrX;
-        int[] BombFrame = new int[40];
+        int[] BombFrame = new int[MaxBombsPerRound];
         int BombSmoothness;
 
         //Explosion
@@ -142,9 +141,7 @@ namespace Kaboom
         int j;
 
         //Scores
-        int ScoreOnes;
-        int ScoreTens;
-        int ScoreHuns;
+        int Score;
         int CaughtCounter;
 
         int Lives = 3;
@@ -176,7 +173,7 @@ namespace Kaboom
         //Pixel Perfect Bucket Collision Rectangles
         Rectangle[] BucketBounds = new Rectangle[3];
         Rectangle FloorBounds = new Rectangle();
-        Rectangle[] BombBounds = new Rectangle[40];
+        Rectangle[] BombBounds = new Rectangle[MaxBombsPerRound];
 
         //Game States-----------------------------------
         int GameStage;
@@ -188,17 +185,32 @@ namespace Kaboom
         const int FullRound = 10;
         const int SemiRound = 5;
 
-        const int BomberOneMS = 5;
-        const int BomberTwoMS = 7;
-        const int BomberThreeMS = 9;
+        //Difficulty Tuning-----------------------------
+        //Levels go on forever. Each level the values below step by their "PerLevel"
+        //amount until they reach their cap, after which the level plays at max difficulty.
+        //The game runs at 60 frames per second.
 
-        const int RoundOneSpeed = 40;
-        const int RoundTwoSpeed = 30;
-        const int RoundThreeSpeed = 20;
+        //How fast the bomber moves side to side (pixels per frame)
+        const int BomberStartSpeed = 5;
+        const int BomberSpeedPerLevel = 2;
+        const int BomberMaxSpeed = 15;
 
-        const int RoundOneFall = 5;
-        const int RoundTwoFall = 7;
-        const int RoundThreeFall = 9;
+        //How often the bomber drops a bomb (frames between bombs, lower = more often)
+        const int DropStartInterval = 40;
+        const int DropIntervalPerLevel = 10;
+        const int DropMinInterval = 10;
+
+        //How fast bombs fall (pixels per frame)
+        const int FallStartSpeed = 5;
+        const int FallSpeedPerLevel = 2;
+        const int FallMaxSpeed = 15;
+
+        //Bombs per round grow with the level (10, 20, 30, ...) up to this cap
+        const int MaxBombsPerRound = 40;
+
+        //Score digits shown on screen
+        const int ScoreDigits = 6;
+        const int MaxScore = 999999;
 
         public Kaboom()
         {
@@ -293,8 +305,8 @@ namespace Kaboom
                 ExploDone[i] = true;
             }
 
-            //Spawns in 40 bombs off screen ready to be used
-            for (i = 0; i < 40; i++)
+            //Spawns in bombs off screen ready to be used
+            for (i = 0; i < MaxBombsPerRound; i++)
             {
                 BombRec[i] = new Rectangle(-50, -50, BombDrawW, BombDrawH);
                 BombSrcRec[i] = new Rectangle(0, 0, BombW, BombH);
@@ -304,13 +316,14 @@ namespace Kaboom
             for (i = 0; i < 3; i++)
             {
                 BucketSrcRec[i] = new Rectangle(0, 0, BucketW, BucketH);
-                NumberSrcRec[i] = new Rectangle(0, 0, NumberW, NumberH);
             }
 
-            //Setting the location on screen for the numbers
+            //Setting the location on screen for the numbers (ones digit first, then leftwards)
             NumberRec[0] = new Rectangle((Background.Width / 2 + 500), 35, NumberDrawW, NumberDrawH);
-            NumberRec[1] = new Rectangle((NumberRec[0].X - 25), 35, NumberDrawW, NumberDrawH);
-            NumberRec[2] = new Rectangle((NumberRec[1].X - 25), 35, NumberDrawW, NumberDrawH);
+            for (i = 1; i < ScoreDigits; i++)
+            {
+                NumberRec[i] = new Rectangle((NumberRec[i - 1].X - 25), 35, NumberDrawW, NumberDrawH);
+            }
 
             //Game rules------------------------------------
 
@@ -400,8 +413,16 @@ namespace Kaboom
                     CatchAnimation(BucketNumber, BucketAnimate);
 
                     //Waits for the user to reset and move on to the next round
-                    if (mb.LeftButton == ButtonState.Pressed)
+                    //(IsActive stops clicks in other windows from starting the game)
+                    if (IsActive && mb.LeftButton == ButtonState.Pressed)
                     {
+                        //Clicking after a game over starts a fresh game
+                        if (Lives < 1)
+                        {
+                            ResetGame();
+                        }
+
+
                         BomberMood(0);
                         StageCheck(Level);
                         BombCounter = 0;
@@ -449,14 +470,14 @@ namespace Kaboom
             DrawBomb();
 
             //Draw explosion rectangles waiting to be used
-            for (i = 0; i < 3; i++)
+            for (i = 0; i < ExploRec.Length; i++)
             {
                 spriteBatch.Draw(Explosions, ExploRec[i], ExploSrcRec[i], Color.White);
             }
 
             LifeCount();
             GameOver();
-            DisplayScore(ScoreOnes, ScoreTens, ScoreHuns);
+            DisplayScore(Score);
             spriteBatch.End();
             base.Draw(gameTime);
         }
@@ -568,7 +589,7 @@ namespace Kaboom
         private void BombDropping()
         {
             //Changes the Y coordinates of any bomb which is on screen
-            for (i = 0; i < RoundType * (Level); i++)
+            for (i = 0; i < BombsThisRound(); i++)
             {
                 if (BombRec[i].Y >= 160)
                 {
@@ -586,7 +607,7 @@ namespace Kaboom
             //Spawns bomb below bomber on a timer
             if (BombRate % BombSpeed == 0)
             {
-                if (BombCounter < RoundType * (Level))
+                if (BombCounter < BombsThisRound())
                 {
                     BombRec[BombCounter] = new Rectangle((BomberRec.X + 15), 160, BombDrawW, BombDrawH);
                     BombBounds[BombCounter] = new Rectangle((BomberRec.X + 15), 185, (BombDrawW - 14), (BombDrawH - 25));
@@ -605,7 +626,7 @@ namespace Kaboom
         private void DrawBomb()
         {
             //Draws enough bombs for the round
-            for (i = 0; i < RoundType * (Level); i++)
+            for (i = 0; i < BombsThisRound(); i++)
             {
                 spriteBatch.Draw(Bomb, BombRec[i], BombSrcRec[i], Color.White);
             }
@@ -666,7 +687,7 @@ namespace Kaboom
         //Checks both types of Collision and removes bombs once they are touched
         private void CollisionTest()
         {
-            for (i = 0; i < 40; i++)
+            for (i = 0; i < MaxBombsPerRound; i++)
             {
                 if (CollisionFloor(FloorBounds, BombBounds[i]) == Floor_Collision)
                 {
@@ -726,7 +747,7 @@ namespace Kaboom
 
             if (BombSmoothness % 4 == 0)
             {
-                for (i = 0; i <= 29; i++)
+                for (i = 0; i < MaxBombsPerRound; i++)
                 {
                     //Only animation bombs which are on screen
                     if (BombRec[i].Y >= 160)
@@ -789,24 +810,37 @@ namespace Kaboom
             ExploNumber = 0;
             HitFloor = false;
 
-            //Check which level the player is on
-            switch (Level)
+            //Scale the bomber and bombs with the level, stopping at the caps
+            int steps = Level - 1;
+            MoveSpeed = Math.Min(BomberStartSpeed + BomberSpeedPerLevel * steps, BomberMaxSpeed);
+            BombSpeed = Math.Max(DropStartInterval - DropIntervalPerLevel * steps, DropMinInterval);
+            BombFall = Math.Min(FallStartSpeed + FallSpeedPerLevel * steps, FallMaxSpeed);
+
+            //Keep the bomber's current direction in step with the new speed
+            Direction = Math.Sign(Direction) * MoveSpeed;
+        }
+
+        //How many bombs the bomber drops this round
+        private int BombsThisRound()
+        {
+            return Math.Min(RoundType * Level, MaxBombsPerRound);
+        }
+
+        //Puts everything back to the start so a new game can begin after a game over
+        private void ResetGame()
+        {
+            Lives = 3;
+            Level = 1;
+            Score = 0;
+            RoundType = FullRound;
+            CaughtCounter = 0;
+            SwapBomb = 0;
+            BackgroundSrcRec = new Rectangle(0, 0, BackgroundW, BackgroundH);
+
+            for (i = 0; i < MaxBombsPerRound; i++)
             {
-                case (1):
-                    BombSpeed = RoundOneSpeed;
-                    BombFall = RoundOneFall;
-                    MoveSpeed = BomberOneMS;
-                    break;
-                case (2):
-                    BombSpeed = RoundTwoSpeed;
-                    BombFall = RoundTwoFall;
-                    MoveSpeed = BomberTwoMS;
-                    break;
-                case (3):
-                    BombSpeed = RoundThreeSpeed;
-                    BombFall = RoundThreeFall;
-                    MoveSpeed = BomberThreeMS;
-                    break;
+                BombRec[i] = new Rectangle(-50, -50, BombDrawW, BombDrawH);
+                BombBounds[i] = new Rectangle(-50, -50, BombDrawW, BombDrawH);
             }
         }
 
@@ -814,7 +848,7 @@ namespace Kaboom
         private void StageClear()
         {
             //Checks when the player has finished the round
-            if (CaughtCounter == RoundType * Level)
+            if (CaughtCounter == BombsThisRound())
             {
                 CaughtCounter = 0;
 
@@ -836,164 +870,32 @@ namespace Kaboom
         //Desc: Adds value to the players score
         private void ScoreKeeper(int Level)
         {
-            ScoreOnes += Level;
-
-            //Insures values can only a single digit number
-            if (ScoreOnes >= 10)
-            {
-                ScoreOnes = ScoreOnes - 10;
-                ScoreTens = ScoreTens + 1;
-            }
-
-            if (ScoreTens >= 10)
-            {
-                ScoreTens = ScoreTens - 10;
-                ScoreHuns = ScoreHuns + 1;
-            }
+            Score = Math.Min(Score + Level, MaxScore);
         }
 
-        //Pre: The ones, tens and hundreds of the score
+        //Pre: The player's score
         //Post: Displays the score to the player
-        //Desc: Switch statement whihc draws the appropriate number in the appropriate slot
-        private void DisplayScore(int Ones, int Tens, int Huns)
+        //Desc: Draws each digit right to left, skipping leading zeros (a score of 0 shows a single 0)
+        private void DisplayScore(int Value)
         {
-            switch (Ones)
+            for (int d = 0; d < ScoreDigits; d++)
             {
-                case (0):
-                    NumberSrcRec[0] = new Rectangle((NumberW * 0), 0, NumberW, NumberH);
-                    spriteBatch.Draw(Number, NumberRec[0], NumberSrcRec[0], Color.White);
+                if (d > 0 && Value == 0)
+                {
                     break;
-                case (1):
-                    NumberSrcRec[0] = new Rectangle((NumberW * 1), 0, NumberW, NumberH);
-                    spriteBatch.Draw(Number, NumberRec[0], NumberSrcRec[0], Color.White);
-                    break;
-                case (2):
-                    NumberSrcRec[0] = new Rectangle((NumberW * 2), 0, NumberW, NumberH);
-                    spriteBatch.Draw(Number, NumberRec[0], NumberSrcRec[0], Color.White);
-                    break;
-                case (3):
-                    NumberSrcRec[0] = new Rectangle((NumberW * 3), 0, NumberW, NumberH);
-                    spriteBatch.Draw(Number, NumberRec[0], NumberSrcRec[0], Color.White);
-                    break;
-                case (4):
-                    NumberSrcRec[0] = new Rectangle((NumberW * 4), 0, NumberW, NumberH);
-                    spriteBatch.Draw(Number, NumberRec[0], NumberSrcRec[0], Color.White);
-                    break;
-                case (5):
-                    NumberSrcRec[0] = new Rectangle((NumberW * 5), 0, NumberW, NumberH);
-                    spriteBatch.Draw(Number, NumberRec[0], NumberSrcRec[0], Color.White);
-                    break;
-                case (6):
-                    NumberSrcRec[0] = new Rectangle((NumberW * 6), 0, NumberW, NumberH);
-                    spriteBatch.Draw(Number, NumberRec[0], NumberSrcRec[0], Color.White);
-                    break;
-                case (7):
-                    NumberSrcRec[0] = new Rectangle((NumberW * 7), 0, NumberW, NumberH);
-                    spriteBatch.Draw(Number, NumberRec[0], NumberSrcRec[0], Color.White);
-                    break;
-                case (8):
-                    NumberSrcRec[0] = new Rectangle((NumberW * 8), 0, NumberW, NumberH);
-                    spriteBatch.Draw(Number, NumberRec[0], NumberSrcRec[0], Color.White);
-                    break;
-                case (9):
-                    NumberSrcRec[0] = new Rectangle((NumberW * 9), 0, NumberW, NumberH);
-                    spriteBatch.Draw(Number, NumberRec[0], NumberSrcRec[0], Color.White);
-                    break;
-            }
+                }
 
-            switch (Tens)
-            {
-                case (0):
-                    if (Huns != 0)
-                    {
-                        NumberSrcRec[1] = new Rectangle((NumberW * 0), 0, NumberW, NumberH);
-                        spriteBatch.Draw(Number, NumberRec[1], NumberSrcRec[1], Color.White);
-                    }
-                    break;
-                case (1):
-                    NumberSrcRec[1] = new Rectangle((NumberW * 1), 0, NumberW, NumberH);
-                    spriteBatch.Draw(Number, NumberRec[1], NumberSrcRec[1], Color.White);
-                    break;
-                case (2):
-                    NumberSrcRec[1] = new Rectangle((NumberW * 2), 0, NumberW, NumberH);
-                    spriteBatch.Draw(Number, NumberRec[1], NumberSrcRec[1], Color.White);
-                    break;
-                case (3):
-                    NumberSrcRec[1] = new Rectangle((NumberW * 3), 0, NumberW, NumberH);
-                    spriteBatch.Draw(Number, NumberRec[1], NumberSrcRec[1], Color.White);
-                    break;
-                case (4):
-                    NumberSrcRec[1] = new Rectangle((NumberW * 4), 0, NumberW, NumberH);
-                    spriteBatch.Draw(Number, NumberRec[1], NumberSrcRec[1], Color.White);
-                    break;
-                case (5):
-                    NumberSrcRec[1] = new Rectangle((NumberW * 5), 0, NumberW, NumberH);
-                    spriteBatch.Draw(Number, NumberRec[1], NumberSrcRec[1], Color.White);
-                    break;
-                case (6):
-                    NumberSrcRec[1] = new Rectangle((NumberW * 6), 0, NumberW, NumberH);
-                    spriteBatch.Draw(Number, NumberRec[1], NumberSrcRec[1], Color.White);
-                    break;
-                case (7):
-                    NumberSrcRec[1] = new Rectangle((NumberW * 7), 0, NumberW, NumberH);
-                    spriteBatch.Draw(Number, NumberRec[1], NumberSrcRec[1], Color.White);
-                    break;
-                case (8):
-                    NumberSrcRec[1] = new Rectangle((NumberW * 8), 0, NumberW, NumberH);
-                    spriteBatch.Draw(Number, NumberRec[1], NumberSrcRec[1], Color.White);
-                    break;
-                case (9):
-                    NumberSrcRec[1] = new Rectangle((NumberW * 9), 0, NumberW, NumberH);
-                    spriteBatch.Draw(Number, NumberRec[1], NumberSrcRec[1], Color.White);
-                    break;
-            }
-
-            switch (Huns)
-            {
-                case (1):
-                    NumberSrcRec[2] = new Rectangle((NumberW * 1), 0, NumberW, NumberH);
-                    spriteBatch.Draw(Number, NumberRec[2], NumberSrcRec[2], Color.White);
-                    break;
-                case (2):
-                    NumberSrcRec[2] = new Rectangle((NumberW * 2), 0, NumberW, NumberH);
-                    spriteBatch.Draw(Number, NumberRec[2], NumberSrcRec[2], Color.White);
-                    break;
-                case (3):
-                    NumberSrcRec[2] = new Rectangle((NumberW * 3), 0, NumberW, NumberH);
-                    spriteBatch.Draw(Number, NumberRec[2], NumberSrcRec[2], Color.White);
-                    break;
-                case (4):
-                    NumberSrcRec[2] = new Rectangle((NumberW * 4), 0, NumberW, NumberH);
-                    spriteBatch.Draw(Number, NumberRec[2], NumberSrcRec[2], Color.White);
-                    break;
-                case (5):
-                    NumberSrcRec[2] = new Rectangle((NumberW * 5), 0, NumberW, NumberH);
-                    spriteBatch.Draw(Number, NumberRec[2], NumberSrcRec[2], Color.White);
-                    break;
-                case (6):
-                    NumberSrcRec[2] = new Rectangle((NumberW * 6), 0, NumberW, NumberH);
-                    spriteBatch.Draw(Number, NumberRec[2], NumberSrcRec[2], Color.White);
-                    break;
-                case (7):
-                    NumberSrcRec[2] = new Rectangle((NumberW * 7), 0, NumberW, NumberH);
-                    spriteBatch.Draw(Number, NumberRec[2], NumberSrcRec[2], Color.White);
-                    break;
-                case (8):
-                    NumberSrcRec[2] = new Rectangle((NumberW * 8), 0, NumberW, NumberH);
-                    spriteBatch.Draw(Number, NumberRec[2], NumberSrcRec[2], Color.White);
-                    break;
-                case (9):
-                    NumberSrcRec[2] = new Rectangle((NumberW * 9), 0, NumberW, NumberH);
-                    spriteBatch.Draw(Number, NumberRec[2], NumberSrcRec[2], Color.White);
-                    break;
+                Rectangle src = new Rectangle(NumberW * (Value % 10), 0, NumberW, NumberH);
+                spriteBatch.Draw(Number, NumberRec[d], src, Color.White);
+                Value /= 10;
             }
         }
 
-        //Closes the game when finished or if they run out of lives
+        //Ends the game when the player runs out of lives (levels never run out)
         private void GameOver()
         {
-            //Checks if they finished the last level or was ran out of lives
-            if (Lives < 1 || Level == 4)
+            //Checks if they ran out of lives
+            if (Lives < 1)
             {
                 spriteBatch.Draw(GameDone, BackgroundRec, BackgroundSrcRec, Color.White);
 
@@ -1005,11 +907,15 @@ namespace Kaboom
         private void Explosion()
         {
             //Move the boms off screen and replace them a hidden rectangles which will be animated later on
-            for (i = 0; i < 40; i++)
+            for (i = 0; i < MaxBombsPerRound; i++)
             {
                 if (BombRec[i].Y >= 160)
                 {
-                    ExploRec[SwapBomb] = new Rectangle(BombRec[i].X, BombRec[i].Y + 10, ExploDrawW, ExploDrawH);
+                    //Only as many explosions as there are slots; extra bombs just vanish
+                    if (SwapBomb < ExploRec.Length)
+                    {
+                        ExploRec[SwapBomb] = new Rectangle(BombRec[i].X, BombRec[i].Y + 10, ExploDrawW, ExploDrawH);
+                    }
 
                     BombRec[i] = new Rectangle(-50, -50, BombDrawW, BombDrawH);
                     BombBounds[i] = new Rectangle(-50, -50, BombDrawW, BombDrawH);
