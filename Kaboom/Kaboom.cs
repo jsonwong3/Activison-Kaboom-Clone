@@ -7,11 +7,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
-using Microsoft.Xna.Framework.GamerServices;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
@@ -236,13 +237,13 @@ namespace Kaboom
 
             //Load all sprites sheets-----------------------
 
-            Background = Content.Load<Texture2D>(@"Images\Background");
-            Bomber = Content.Load<Texture2D>(@"Images\Bomber");
-            Bucket = Content.Load<Texture2D>(@"Images\Bucket");
-            Bomb = Content.Load<Texture2D>(@"Images\Bomb");
-            Number = Content.Load<Texture2D>(@"Images\Number");
-            GameDone = Content.Load<Texture2D>(@"Images\GameOver");
-            Explosions = Content.Load<Texture2D>(@"Images\Explosion");
+            Background = LoadTexture("Background");
+            Bomber = LoadTexture("Bomber");
+            Bucket = LoadTexture("Bucket");
+            Bomb = LoadTexture("Bomb");
+            Number = LoadTexture("Number");
+            GameDone = LoadTexture("GameOver");
+            Explosions = LoadTexture("Explosion");
 
             //Create boundaries for the sprite sheets-------
 
@@ -317,13 +318,54 @@ namespace Kaboom
             RoundType = FullRound;
 
             //Sounds----------------------------------------
-            DropBomb = Content.Load<SoundEffect>(@"Sounds\18530");
+            DropBomb = LoadSound("18530");
             DropBombInstance = DropBomb.CreateInstance();
         }
 
         protected override void UnloadContent()
         {
 
+        }
+
+        //Assets are embedded in the exe so the game ships as a single file
+        Stream OpenAsset(string name)
+        {
+            Stream s = Assembly.GetExecutingAssembly().GetManifestResourceStream(name);
+            if (s == null) throw new FileNotFoundException("Missing embedded asset: " + name);
+            return s;
+        }
+
+        //Matches the XNA texture processor defaults: magenta colour key + premultiplied alpha
+        Texture2D LoadTexture(string name)
+        {
+            using (Stream s = OpenAsset("Images/" + name + ".png"))
+            {
+                return Texture2D.FromStream(GraphicsDevice, s, data =>
+                {
+                    for (int p = 0; p < data.Length; p += 4)
+                    {
+                        if (data[p] == 255 && data[p + 1] == 0 && data[p + 2] == 255)
+                        {
+                            data[p] = data[p + 1] = data[p + 2] = data[p + 3] = 0;
+                        }
+                        else if (data[p + 3] < 255)
+                        {
+                            byte a = data[p + 3];
+                            data[p] = (byte)(data[p] * a / 255);
+                            data[p + 1] = (byte)(data[p + 1] * a / 255);
+                            data[p + 2] = (byte)(data[p + 2] * a / 255);
+                        }
+                    }
+                });
+            }
+        }
+
+        SoundEffect LoadSound(string name)
+        {
+            using (Stream s = OpenAsset("Sounds/" + name + ".wav"))
+            {
+                return SoundEffect.FromStream(s);
+            }
         }
 
         /// <summary>
